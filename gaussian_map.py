@@ -117,7 +117,7 @@ def mean_curvature(mesh, face_vertices_dict, face_vertices_angles):
         # print(face2_area)
         Ai *= 1/3
         # print("Ai = ", Ai)
-        vertex_curvature = np.linalg.norm(sum/(2*Ai))/2
+        vertex_curvature = np.abs(np.linalg.norm(sum/(2*Ai))/2)
         #print("vertex_curvature =", vertex_curvature)
         # mesh.set_vertex_property('prop', vertex, vertex_curvature )
         color = map_curvature_to_color(vertex_curvature)
