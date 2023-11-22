@@ -16,22 +16,20 @@ def developabilityDetectFunction(mesh):
                 vector1 = vector(mesh, vertex, vh1)
                 vector2 = vector(mesh, vertex, vh2)
                 angle = np.arccos(np.dot(vector1, vector2)/(np.sqrt(np.dot(vector1, vector1))*np.sqrt(np.dot(vector2, vector2))))
-
-                sum -= angle #FIXME sum should never be negative
-
+                sum -= angle
             developability += sum
+        mesh.set_color(vertex, [developability, developability, developability, 1.])
 
-
-    return developability
+    return developability, mesh
 
 
 def main():
-    filename = "../Objects/mesh_00030.off"
+    filename = "../Objects/sphere.off "
     nbMaxIteration = 10
 
     mesh = om.read_trimesh(filename)
 
-    developability = developabilityDetectFunction(mesh)
+    developability, output = developabilityDetectFunction(mesh)
     nbIteration = 0
 
     print(developability)
@@ -40,7 +38,11 @@ def main():
     #     developability = developabilityDetectFunction(mesh)
     #     nbIteration += 1
 
+
+    om.write_mesh("Output.off", output, vertex_color=True)
+
     return 0
+
 
 if __name__ == "__main__":
     main()

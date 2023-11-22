@@ -19,11 +19,12 @@ def read_off_file(file):
 
 def main():
     print("---------- Début main\n")
-    off_file = "Objects/test.off"
+    off_file = "../Objects/sphere.off"
     #à la main:
     #read_off_file(off_file)
     # En utilisnt les librairies:
     mesh = om.read_trimesh(off_file) #créer un mesh à partir du fichier .off
+    print(mesh)
     #om.write_mesh('test.off', mesh) #Ecrit un fichier off à partir d'un mesh
     # TODO implémenter algorithme
     print("---------- Fin main\n")

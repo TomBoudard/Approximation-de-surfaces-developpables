@@ -121,15 +121,15 @@ def mean_curvature(mesh, face_vertices_dict, face_vertices_angles):
         #print("vertex_curvature =", vertex_curvature)
         # mesh.set_vertex_property('prop', vertex, vertex_curvature )
         color = map_curvature_to_color(vertex_curvature)
-        mesh.set_color(vertex, color)
-        mesh.get_color(vertex)
+        mesh.set_color(vertex, (0.0, 1.0, 0.0, 1.0))
+        # mesh.get_color(vertex)
     return mesh
 
 
 ######################################################################
 def main2():   #Real main reading .off files
     print("---------- Début main\n")
-    off_file = "Objects/sphere.off"
+    off_file = "../Objects/sphere.off"
     #à la main:
     #read_off_file(off_file)
     # En utilisnt les librairies:
@@ -138,8 +138,8 @@ def main2():   #Real main reading .off files
     # TODO implémenter algorithme
     a, b = add_angles(mesh)
     mesh.request_face_colors()
-    mean_curvature(mesh, a, b)
-    om.write_mesh("test_sphere.off", mesh)
+    test = mean_curvature(mesh, a, b)
+    om.write_mesh("test_sphere.ply", test)
     print("---------- Fin main\n")
 
 
