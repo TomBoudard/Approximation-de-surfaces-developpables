@@ -21,7 +21,6 @@ def surfaceDiscrepancy(originalMesh, editedMesh):
 
         discrepancy += (editedNorm - originalNorm) * (editedNorm - originalNorm)
 
-    print(discrepancy)
     return discrepancy
 
 
@@ -58,6 +57,26 @@ def developabilityDetectFunction(mesh):
 
     return developability
 
+def rhoInitalization(mesh):
+    nbEdge = 0
+    sumEdgeLength = 0
+    developability = developabilityDetectFunction(mesh)
+
+    for edge in mesh.edges():
+        nbEdge += 1
+
+        halfEdge = mesh.halfedge_handle(edge, 0)
+
+        vertexHandleFrom = mesh.from_vertex_handle(halfEdge)
+        vertexHandleTo = mesh.to_vertex_handle(halfEdge)
+
+        edgeNorm = np.linalg.norm(vector(mesh, vertexHandleFrom, vertexHandleTo))
+
+        sumEdgeLength += edgeNorm * edgeNorm
+
+    return sumEdgeLength/(nbEdge*developability)
+
+
 
 def main():
     filename = "../Objects/sphere.off"
@@ -66,7 +85,8 @@ def main():
     originalMesh = om.read_trimesh(filename)
     editedMesh = om.read_trimesh(filename)
 
-    rho = 1
+    rho = rhoInitalization(originalMesh)
+    print(rho)
 
     developability = developabilityDetectFunction(editedMesh)
 
