@@ -15,8 +15,6 @@ def read_off_file(file):
         print(NB_faces)
         print(NB_edges)
 
-# def write_off_file():
-
 def main():
     print("---------- Début main\n")
     off_file = "../Objects/sphere.off"
