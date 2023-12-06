@@ -6,6 +6,7 @@ def vector(mesh, vertexStart, vertexEnd):
             mesh.point(vertexEnd)[1] - mesh.point(vertexStart)[1],
             mesh.point(vertexEnd)[2] - mesh.point(vertexStart)[2])
 
+
 def hsv_to_rgb(h, s, v):
     # Assurez-vous que les valeurs de H, S et V sont dans la plage correcte
     h = max(0, min(1, h))

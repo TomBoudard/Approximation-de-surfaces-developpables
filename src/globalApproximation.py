@@ -86,7 +86,6 @@ def main():
     editedMesh = om.read_trimesh(filename)
 
     rho = rhoInitalization(originalMesh)
-    print(rho)
 
     developability = developabilityDetectFunction(editedMesh)
 
