@@ -4,42 +4,75 @@ import numpy as np
 from tools import *
 
 
+def surfaceDiscrepancy(originalMesh, editedMesh):
+    discrepancy = 0
+    for originalEdge, editedEdge in zip(originalMesh.edges(), editedMesh.edges()):
+        originalHalfEdge = originalMesh.halfedge_handle(originalEdge, 0)
+        editedHalfEdge = editedMesh.halfedge_handle(editedEdge, 0)
+
+        originalVertexHandleFrom = originalMesh.from_vertex_handle(originalHalfEdge)
+        originalVertexHandleTo = originalMesh.to_vertex_handle(originalHalfEdge)
+
+        editedVertexHandleFrom = editedMesh.from_vertex_handle(editedHalfEdge)
+        editedVertexHandleTo = editedMesh.to_vertex_handle(editedHalfEdge)
+
+        editedNorm = np.linalg.norm(vector(editedMesh, editedVertexHandleFrom, editedVertexHandleTo))
+        originalNorm = np.linalg.norm(vector(originalMesh, originalVertexHandleFrom, originalVertexHandleTo))
+
+        discrepancy += (editedNorm - originalNorm) * (editedNorm - originalNorm)
+
+    print(discrepancy)
+    return discrepancy
+
+
 def developabilityDetectFunction(mesh):
     developability = 0
+    listSum = []
     for vertex in mesh.vertices():
         if not mesh.is_boundary(vertex):
-            sum = 2*np.pi
+            sum = 2 * np.pi
             neighbours = [vh for vh in mesh.vv(vertex)]
             for i in range(len(neighbours)):
                 vh1 = neighbours[i]
-                vh2 = neighbours[(i+1)%len(neighbours)]
+                vh2 = neighbours[(i + 1) % len(neighbours)]
                 vector1 = vector(mesh, vertex, vh1)
                 vector2 = vector(mesh, vertex, vh2)
-                angle = np.arccos(np.dot(vector1, vector2)/(np.sqrt(np.dot(vector1, vector1))*np.sqrt(np.dot(vector2, vector2))))
+                angle = np.arccos(
+                    np.dot(vector1, vector2) / (np.sqrt(np.dot(vector1, vector1)) * np.sqrt(np.dot(vector2, vector2))))
                 sum -= angle
+            listSum.append(sum)
             developability += sum
-        mesh.set_color(vertex, [developability, developability, developability, 1.])
+        else:
+            listSum.append(False)
 
-    return developability, mesh
+    maxSum = max(listSum)
+    minSum = min(listSum)
+    for vertex in mesh.vertices():
+        if listSum[vertex.idx()]:
+            normalizedSum = (listSum[vertex.idx()] - minSum) / (maxSum - minSum)
+            r, g, b = hsv_to_rgb(normalizedSum, 1, 1)
+            color = [r, g, b, 1.]
+        else:
+            color = [0., 0., 0., 1.]
+        mesh.set_color(vertex, color)
+
+    return developability
 
 
 def main():
-    filename = "../Objects/sphere.off "
+    filename = "../Objects/sphere.off"
     nbMaxIteration = 10
 
-    mesh = om.read_trimesh(filename)
+    originalMesh = om.read_trimesh(filename)
+    editedMesh = om.read_trimesh(filename)
 
-    developability, output = developabilityDetectFunction(mesh)
-    nbIteration = 0
+    rho = 1
 
-    print(developability)
-    # while developability > 0 or nbIteration < nbMaxIteration:
-    #     #TODO Change mesh
-    #     developability = developabilityDetectFunction(mesh)
-    #     nbIteration += 1
+    developability = developabilityDetectFunction(editedMesh)
 
+    surfaceDiscrepancy(originalMesh, editedMesh)
 
-    om.write_mesh("Output.off", output, vertex_color=True)
+    om.write_mesh("../output/test.off", editedMesh, vertex_color=True)
 
     return 0
 
