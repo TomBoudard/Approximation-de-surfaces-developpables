@@ -33,6 +33,7 @@ def mean_curvature(mesh, face_vertices_dict, face_vertices_angles):
         mesh.set_vertex_property('prop', vertex, vertex_curvature )
     for vertex in mesh.vertices():
         vertex_curvature = mesh.vertex_property('prop')[vertex.idx()]
+        print("vertex_curvature =", vertex_curvature)
         color = map_curvature_to_color(vertex_curvature, max_curvature)
         mesh.set_color(vertex, color) #à faire à posteriori après avoir trouvé max et min
     return mesh
@@ -40,7 +41,7 @@ def mean_curvature(mesh, face_vertices_dict, face_vertices_angles):
 ######################################################################
 def main2():   # More elaborate main reading and testing on .off files
     print("---------- Début main\n")
-    off_file = "../Objects/sphere.off"
+    off_file = "../Objects/eight.off"
     # En utilisnt les librairies:
     mesh = om.read_trimesh(off_file) #créer un mesh à partir du fichier .off
     a, b = add_angles(mesh)
