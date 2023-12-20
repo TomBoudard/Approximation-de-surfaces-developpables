@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 def cotan(x):
     return np.cos(x)/np.sin(x)
 
-def vector(mesh, vertexStart, vertexEnd):
-    return (mesh.point(vertexEnd)[0] - mesh.point(vertexStart)[0],
-            mesh.point(vertexEnd)[1] - mesh.point(vertexStart)[1],
-            mesh.point(vertexEnd)[2] - mesh.point(vertexStart)[2])
+# def vector(mesh, vertexStart, vertexEnd):
+#     return (mesh.point(vertexEnd)[0] - mesh.point(vertexStart)[0],
+#             mesh.point(vertexEnd)[1] - mesh.point(vertexStart)[1],
+#             mesh.point(vertexEnd)[2] - mesh.point(vertexStart)[2])
 
 def dist(mesh,x1, x2):
     x1 = mesh.point(x1)
@@ -46,7 +46,11 @@ def compute_area(mesh, face_vertices_dict, face_vertices_angles, face_id):
 def map_curvature_to_color(value, max_val, alpha=1.0, colormap_name='viridis'):
     if value == None: #c'est un bord
         return[1, 1, 1, 1]
-    normalized_value = value/max_val
+    # normalized_value = (value/max_val)
+    # epsilon = 1e-5  # Small constant to avoid logarithm of zero
+    # normalized_value = np.log(value + epsilon) / np.log(max_val + epsilon)
+    power = 0.5  # Set the power factor for the normalization (adjust as needed)
+    normalized_value = (value / max_val) ** power
     # Choose a colormap
     colormap = plt.get_cmap(colormap_name)
     # Map the normalized value to a color using the chosen colormap
