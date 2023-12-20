@@ -20,13 +20,24 @@ def updateHeap(mesh, vertex):
     ...
     return 0
 
-#Tom
+
 def updateVertex(mesh, vertex):
-    ...
-    return 0
+    """
+    Take a mesh and a vertex and move this vertex along its normal
+    """
+
+    coordinates = mesh.point(vertex)
+    normal = mesh.vertex_normal(vertex)
+
+    delta = 1
+
+    newCoordinates = coordinates + delta*normal
+
+    mesh.set_point(vertex, newCoordinates)
+
 
 def updateNeighbour(mesh, vertex):
-    ...
+    ...     
     return 0
 
 
