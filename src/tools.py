@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 def cotan(x):
     return np.cos(x)/np.sin(x)
 
-# def vector(mesh, vertexStart, vertexEnd):
-#     return (mesh.point(vertexEnd)[0] - mesh.point(vertexStart)[0],
-#             mesh.point(vertexEnd)[1] - mesh.point(vertexStart)[1],
-#             mesh.point(vertexEnd)[2] - mesh.point(vertexStart)[2])
+def vector(mesh, vertexStart, vertexEnd):
+    return (mesh.point(vertexEnd)[0] - mesh.point(vertexStart)[0],
+            mesh.point(vertexEnd)[1] - mesh.point(vertexStart)[1],
+            mesh.point(vertexEnd)[2] - mesh.point(vertexStart)[2])
 
 def dist(mesh,x1, x2):
     x1 = mesh.point(x1)
@@ -59,7 +59,7 @@ def map_curvature_to_color(value, max_val, alpha=1.0, colormap_name='viridis'):
 
 def add_angles(mesh):
     '''This function aim to store for every face of our mesh, the vertices associated and the angle associated to
-    each verticies in the face'''
+    each vertices in the face'''
     face_vertices_dict = {}
     face_vertices_angles = {}
     for face in mesh.faces(): #Iterate on the face of our mesh

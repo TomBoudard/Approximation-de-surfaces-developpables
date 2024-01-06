@@ -43,18 +43,21 @@ def developabilityDetectFunction(mesh):
             developability += sum
         else:
             listSum.append(False)
-
     maxSum = max(listSum)
     minSum = min(listSum)
     for vertex in mesh.vertices():
         if listSum[vertex.idx()]:
             normalizedSum = (listSum[vertex.idx()] - minSum) / (maxSum - minSum)
-            r, g, b = hsv_to_rgb(normalizedSum, 1, 1)
+            if normalizedSum < 0.3:
+                r, g, b = normalizedSum, 0, 0
+            elif normalizedSum < 0.6:
+                r, g, b = 0, normalizedSum, 0
+            else:
+                r, g, b = 0, 0, normalizedSum
             color = [r, g, b, 1.]
         else:
             color = [0., 0., 0., 1.]
         mesh.set_color(vertex, color)
-
     return developability
 
 def rhoInitalization(mesh):

@@ -8,9 +8,8 @@ def main():
 
     file = open(filename, "r")
 
-    if file.readline() != "OFF":
-        # raise SyntaxError(filename + " is not an OFF file")
-        print("OPUHIH")
+    # if file.readline() != "OFF":
+    #     # raise SyntaxError(filename + " is not an OFF file")
 
     fileParams = file.readline().split()
 

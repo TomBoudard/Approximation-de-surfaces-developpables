@@ -3,32 +3,36 @@ import numpy as np
 from tools import *
 import heapq
 from gaussian_map import mean_curvature
+from globalApproximation import *
 
 
-def vector(mesh, vertexStart, vertexEnd):
-    position_vertexStart = getVertexNewPosition(mesh, vertexStart)
-    position_vertexEnd = getVertexNewPosition(mesh, vertexEnd)
+def vectorNew(mesh, vertexStart, vertexEnd, h=0):
+    position_vertexStart = getVertexNewPosition(mesh, vertexStart, h)
+    position_vertexEnd = getVertexNewPosition(mesh, vertexEnd, h)
     return (position_vertexEnd[0] - position_vertexStart[0],
             position_vertexEnd[1] - position_vertexStart[1],
             position_vertexEnd[2] - position_vertexStart[2])
 
 
-def getDevelopability(mesh, vertex):
-    ''' Return developability of a vertex from the mesh, function named
-    g in the paper
-    '''
+def getDevelopability(mesh, vertex, updatedPositions, h=0):
+    ''' Return developability of a vertex from the mesh, function named g in the paper '''
     if not mesh.is_boundary(vertex): #else developability = 0
         developability = 2 * np.pi
         neighbours = [vh for vh in mesh.vv(vertex)]
         for i in range(len(neighbours)):
             vh1 = neighbours[i]
             vh2 = neighbours[(i + 1) % len(neighbours)]
-            vector1 = vector(mesh, vertex, vh1)
-            vector2 = vector(mesh, vertex, vh2)
-            angle = np.arccos(
-                np.dot(vector1, vector2) / (np.sqrt(np.dot(vector1, vector1)) * np.sqrt(np.dot(vector2, vector2))))
+            if updatedPositions:
+                vector1 = vectorNew(mesh, vertex, vh1, h=h)
+                vector2 = vectorNew(mesh, vertex, vh2, h=h)
+            else:
+                vector1 = vectorNew(mesh, vertex, vh1)
+                vector2 = vectorNew(mesh, vertex, vh2)
+            vector1 /= np.linalg.norm(vector1)
+            vector2 /= np.linalg.norm(vector2)
+            angle = np.arccos(np.dot(vector1, vector2))
             developability -= angle
-        developability = developability**2 #vraiment utile?
+        # developability = developability**2 #vraiment utile?
         return developability
     else:
         return 0
@@ -39,10 +43,14 @@ def initMesh(mesh):
     '''
     for vertex in mesh.vertices():
         mesh.set_vertex_property('movement_scale', vertex, 0)
-        developability = getDevelopability(mesh, vertex)
+        print("Movement scale ", mesh.vertex_property('movement_scale')[vertex.idx()])
+        normal = getNormal(mesh, vertex)
+        mesh.set_vertex_property('normal', vertex, normal)
+        print("Normal ", mesh.vertex_property('normal')[vertex.idx()])
+    for vertex in mesh.vertices():
+        developability = getDevelopability(mesh, vertex, True)
         mesh.set_vertex_property('developability', vertex, developability)
-        #print(mesh.vertex_property('developability')[vertex.idx()])
-        # print(mesh.vertex_property('movement_scale')[vertex.idx()])
+        print("Developability ", mesh.vertex_property('developability')[vertex.idx()])
     return mesh
 
 
@@ -51,10 +59,10 @@ def initDic(mesh):
     Take a mesh and returns a dictionary keyed on the vertices' id, with the [g(· · · )]2 measure as values
     """
     vertices = {vertex.idx() : [mesh.vertex_property('developability')[vertex.idx()], vertex] for vertex in mesh.vertices()}
-    #print(vertices) #debug
+    # print(vertices) #debug
     return vertices
 
-def getVertex(mesh, dictionary):
+def getVertex(dictionary):
     ''' return the vertex with the maximum [g(· · · )]2'''
     # vertex_id = max(dictionary, key = lambda x :dictionary.get()[0]) #give the vertex id
     # vertex_id = max(dictionary, key=lambda x: dictionary[x][0])
@@ -63,11 +71,11 @@ def getVertex(mesh, dictionary):
     max_value = float('-inf')  # Initialize max_value as negative infinity
 
     for vertex_id, value in dictionary.items():
-        if isinstance(value, list) and len(value) >= 1 and isinstance(value[0], (int, float)):
+        # if isinstance(value, list) and len(value) >= 1 and isinstance(value[0], (int, float)):
             # Check if the value is a list and the first element is a numeric type (e.g., int or float)
-            if value[0] > max_value:
-                max_value = value[0]
-                max_value_vertex_id = vertex_id
+        if value[0] > max_value:
+            max_value = value[0]
+            max_value_vertex_id = vertex_id
 
     return dictionary[max_value_vertex_id][1]
 
@@ -76,22 +84,25 @@ def updateDevelopability(mesh, moved_vertex, dictionary):
     vertices_to_update = [vh for vh in mesh.vv(moved_vertex)]
     vertices_to_update.append(moved_vertex)
     for vertex in vertices_to_update:
-        developability = getDevelopability(mesh, vertex)
+        developability = getDevelopability(mesh, vertex, True)
         mesh.set_vertex_property('developability', vertex, developability)
-        dictionary[vertex.idx()] = developability
+        dictionary[vertex.idx()][0] = developability
 
-def localOptimizationConstraint(mesh, vertex, delta):
+def localOptimizationConstraint(mesh, vertex, h=0):
     '''return the constraint T(δ) = (g(q + δn q ))2 + sum_j(g(q j ))2 of local optimization'''
-    normal = mesh.normal(vertex)
-    new_position = mesh.point(vertex) + delta * normal
-    mesh.set_point(vertex, new_position)
-    print("new_vertex =", new_position)
-    new_vertex_developability = getDevelopability(mesh, vertex) # g(q + δn q )
+    # normal = mesh.vertex_property('normal')[vertex.idx()]
+    # new_position = mesh.point(vertex)
+    # new_position[0] += delta * normal[0]
+    # new_position[1] += delta * normal[1]
+    # new_position[2] += delta * normal[2]
+    # mesh.set_point(vertex, new_position)
+    new_vertex_developability = getDevelopability(mesh, vertex, True, h=h) # g(q + δn q )
     neighbours = [vh for vh in mesh.vv(vertex)] #les qj
     sum = 0
     for v in neighbours:
-        sum += getDevelopability(mesh, v)**2
+        sum += getDevelopability(mesh, v, False, h=h)**2
     constraint = new_vertex_developability**2 + sum
+
     return constraint
 
 def updateVertex(mesh, vertex):
@@ -102,25 +113,41 @@ def updateVertex(mesh, vertex):
     # Compute the movement scale
     prev_movement_scale = mesh.vertex_property('movement_scale')[vertex.idx()] # delta_0
     constraint = localOptimizationConstraint(mesh, vertex, prev_movement_scale) # T(delta_0)
-    derivative_constraint = central_difference(mesh, localOptimizationConstraint, vertex, prev_movement_scale)# dT(delta_0)
-    new_movement_scale = prev_movement_scale - constraint/derivative_constraint
-    mesh.set_vertex_property('movement_scale', vertex, new_movement_scale) #update the movement scale
+    derivative_constraint = central_difference(mesh, localOptimizationConstraint, vertex)# dT(delta_0)
+    if (derivative_constraint != 0):
+        new_movement_scale = prev_movement_scale - constraint/derivative_constraint
+        mesh.set_vertex_property('movement_scale', vertex, new_movement_scale) #update the movement scale
+    else:
+        mesh.set_vertex_property('movement_scale', vertex, 0) #update the movement scale
     return 0
 
-def central_difference(mesh, T, vertex, delta, h=1e-5):
+def getNormal(mesh, vertex):
+    normal = np.array([.0, .0, .0])
+    for face in mesh.vf(vertex):
+        faceVertex = []
+        for vertex in mesh.fv(face):
+            point = mesh.point(vertex)
+            faceVertex.append(np.array([point[0], point[1], point[2]]))
+
+        firstVector = faceVertex[1]-faceVertex[0]
+        secondVector = faceVertex[2]-faceVertex[0]
+        normal = normal + np.cross(firstVector, secondVector)
+
+    return normal/np.linalg.norm(normal)
+
+def updateNormals(mesh):
+    for vertex in mesh.vertices():
+        normal = getNormal(mesh, vertex)
+        mesh.set_vertex_property('normal', vertex, normal)
+
+    return 0
+
+def central_difference(mesh, T, vertex, h=1e-3):
     '''
-    Use central difference to approximat dT
+    Use central difference to approximate dT
      f(x + h) - f(x - h)) / (2 * h)
     '''
-    return (T(mesh, vertex, delta + h) - T(mesh, vertex, delta - h)) / (2 * h)
-
-
-
-def updateNeighbour(mesh, vertex):
-    '''
-    Update the developabilty of the neighbourhood of the vertex we moved
-    '''
-    return 0
+    return (T(mesh, vertex, h=h) - T(mesh, vertex, h=-h))/ (2 * h)
 
 def updateVerticesPositions(mesh):
     '''
@@ -130,7 +157,8 @@ def updateVerticesPositions(mesh):
         new_position = getVertexNewPosition(mesh, vertex)
         mesh.set_point(vertex, new_position)
 
-def getVertexNewPosition(mesh, vertex):
+
+def getVertexNewPosition(mesh, vertex, h=0):
     '''
     Return the new position of a vertex according to its movement scale
     '''
@@ -138,37 +166,41 @@ def getVertexNewPosition(mesh, vertex):
     movement_scale = mesh.vertex_property('movement_scale')[vertex.idx()]
     if movement_scale == None: #A cause de l'initialisation pour pas parcourir deux fois le mesh dans initMesh
         movement_scale = 0
-    normal = mesh.normal(vertex)
+    normal = mesh.vertex_property('normal')[vertex.idx()]
     # print("current_position = ", current_position)
     # print("movement_scale = ", movement_scale)
     # print("normal = ", normal)
-    new_position = current_position + movement_scale * normal
+    new_position = np.array([current_position[0], current_position[1], current_position[2]])
+    new_position[0] += (movement_scale + h) * normal[0]
+    new_position[1] += (movement_scale + h) * normal[1]
+    new_position[2] += (movement_scale + h) * normal[2]
     return new_position
 
 def main():
     print("---------- Début main\n")
-    maxIter = 100
+    maxIter = 1000
     nbIter = 0
-    epsilon = 0.001
+    epsilon = 0.01
 
     ###    Read .off file
-    filename = "../Objects/EmpireDress.off"
+    filename = "../Objects/mesh_00000.off"
     mesh = om.read_trimesh(filename)
-    a, b = add_angles(mesh)
-    initial_object = mean_curvature(mesh, a, b)
-    om.write_mesh("obj_initial.off", initial_object, vertex_color = True)
+    # a, b = add_angles(mesh)
+    # initial_object = mean_curvature(mesh, a, b)
+    developabilityDetectFunction(mesh)
+    om.write_mesh("obj_initial.off", mesh, vertex_color = True)
 
     ###    Compute the vertex developability detect function g(q) at each vertex on the given mesh patch and set the movement scale to each vertex to 0
     initMesh(mesh)
 
     ###    Compute the unit normal n of each vertex
     #NONNNNN A FAIRE
-    mesh.update_vertex_normals()
+    # updateNormals(mesh)
     # print(mesh.vertex_normals()) #pour debug
 
     ###    Place all vertices in a dictionary H keyed on the vertices' id and with the [g(· · · )]2 measure as values and get the vertex with max values
     vertices_dic = initDic(mesh)
-    vertex = getVertex(mesh, vertices_dic)
+    vertex = getVertex(vertices_dic)
     max_developability = mesh.vertex_property('developability')[vertex.idx()]
     #while (the developability of the vertex with max developability is greater than ε) and (nbIter < maxIter);
     while ((max_developability > epsilon) and (nbIter < maxIter) ):
@@ -176,24 +208,26 @@ def main():
         updateVertex(mesh, vertex)
 
         ###    Update the cost of q and its adjacent vertices to reflect the movement on q
-        #updateNeighbour(...)
 
         ###    Update the dictionary
         updateDevelopability(mesh, vertex, vertices_dic)
 
-        #Select the new vertex for nest iteration
-        vertex = getVertex(mesh, vertices_dic)
+        #Select the new vertex for next iteration
+        vertex = getVertex(vertices_dic)
         max_developability = mesh.vertex_property('developability')[vertex.idx()]
+        print("max_developability = ", max_developability)
         nbIter += 1
     print("---------- Fin algo\n")
-    print("max_developability = ", max_developability)
-    print("nbIter = ", nbIter)
     # Update the positions of all the vertices by their movement scales
     updateVerticesPositions(mesh)
-    c, d = add_angles(mesh)
-    optimize_object = mean_curvature(mesh, c, d)
-    om.write_mesh("obj_optimized.off", optimize_object, vertex_color = True)
+    updateNormals(mesh)
+    # c, d = add_angles(mesh)
+    # optimize_object = mean_curvature(mesh, c, d)
+    developabilityDetectFunction(mesh)
+    om.write_mesh("obj_optimized.off", mesh, vertex_color = True)
     # Update the normal vectors of all the vertices on O
+    # print("max_developability = ", max_developability)
+    print("nbIter = ", nbIter)
     #Utile pour nous?
 
 def main2():  # Dummy main with basic mesh to test the functions
@@ -224,7 +258,7 @@ def main2():  # Dummy main with basic mesh to test the functions
 
     initMesh(mesh)
     ###    Compute the unit normal n of each vertex
-    mesh.update_vertex_normals()
+    # mesh.update_vertex_normals()
     #print(mesh.vertex_normals()) #pour debug
 
     ###    Place all vertices in a dictionary H keyed on the vertices' id and with the [g(· · · )]2 measure as values and get the vertex with max values
