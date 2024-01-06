@@ -40,7 +40,10 @@ def compute_area(mesh, face_vertices_dict, face_vertices_angles, face_id):
     angle = face_vertices_angles[face_id][A.idx()]
     b = dist(mesh, A,C)
     c = dist(mesh, A,B)
-    area = b * c * np.sin(angle) / 2
+    if (angle == 0): #triangle rectangle
+        area = b * c / 2
+    else:
+        area = b * c * np.sin(angle) / 2
     return area
 
 def map_curvature_to_color(value, max_val, alpha=1.0, colormap_name='viridis'):

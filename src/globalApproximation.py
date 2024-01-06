@@ -4,6 +4,13 @@ import numpy as np
 from tools import *
 
 
+
+def vector(mesh, vertexStart, vertexEnd):
+    return (mesh.point(vertexEnd)[0] - mesh.point(vertexStart)[0],
+            mesh.point(vertexEnd)[1] - mesh.point(vertexStart)[1],
+            mesh.point(vertexEnd)[2] - mesh.point(vertexStart)[2])
+
+
 def surfaceDiscrepancy(originalMesh, editedMesh):
     discrepancy = 0
     for originalEdge, editedEdge in zip(originalMesh.edges(), editedMesh.edges()):
