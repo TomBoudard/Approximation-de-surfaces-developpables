@@ -48,7 +48,9 @@ def developabilityDetectFunction(mesh):
     for vertex in mesh.vertices():
         if listSum[vertex.idx()]:
             normalizedSum = (listSum[vertex.idx()] - minSum) / (maxSum - minSum)
-            if normalizedSum < 0.3:
+            if normalizedSum == 1:
+                r, g, b = normalizedSum, normalizedSum, normalizedSum
+            elif normalizedSum < 0.3:
                 r, g, b = normalizedSum, 0, 0
             elif normalizedSum < 0.6:
                 r, g, b = 0, normalizedSum, 0
@@ -58,6 +60,8 @@ def developabilityDetectFunction(mesh):
         else:
             color = [0., 0., 0., 1.]
         mesh.set_color(vertex, color)
+
+    # print("DEVELOPABILITY ", developability)
     return developability
 
 def rhoInitalization(mesh):

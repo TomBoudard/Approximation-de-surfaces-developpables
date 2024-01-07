@@ -9,9 +9,10 @@ from globalApproximation import *
 def vectorNew(mesh, vertexStart, vertexEnd, h=0):
     position_vertexStart = getVertexNewPosition(mesh, vertexStart, h)
     position_vertexEnd = getVertexNewPosition(mesh, vertexEnd, h)
-    return (position_vertexEnd[0] - position_vertexStart[0],
+    test = (position_vertexEnd[0] - position_vertexStart[0],
             position_vertexEnd[1] - position_vertexStart[1],
             position_vertexEnd[2] - position_vertexStart[2])
+    return test
 
 
 def getDevelopability(mesh, vertex, updatedPositions, h=0):
@@ -26,8 +27,8 @@ def getDevelopability(mesh, vertex, updatedPositions, h=0):
                 vector1 = vectorNew(mesh, vertex, vh1, h=h)
                 vector2 = vectorNew(mesh, vertex, vh2, h=h)
             else:
-                vector1 = vectorNew(mesh, vertex, vh1)
-                vector2 = vectorNew(mesh, vertex, vh2)
+                vector1 = vector(mesh, vertex, vh1)
+                vector2 = vector(mesh, vertex, vh2)
             vector1 /= np.linalg.norm(vector1)
             vector2 /= np.linalg.norm(vector2)
             angle = np.arccos(np.dot(vector1, vector2))
@@ -70,11 +71,12 @@ def getVertex(dictionary):
     max_value_vertex_id = None
     max_value = float('-inf')  # Initialize max_value as negative infinity
 
+    # print("DICTIONNAIRE: ", dictionary.items())
     for vertex_id, value in dictionary.items():
         # if isinstance(value, list) and len(value) >= 1 and isinstance(value[0], (int, float)):
             # Check if the value is a list and the first element is a numeric type (e.g., int or float)
-        if value[0] > max_value:
-            max_value = value[0]
+        if abs(value[0]) > max_value:
+            max_value = abs(value[0])
             max_value_vertex_id = vertex_id
 
     return dictionary[max_value_vertex_id][1]
@@ -86,7 +88,9 @@ def updateDevelopability(mesh, moved_vertex, dictionary):
     for vertex in vertices_to_update:
         developability = getDevelopability(mesh, vertex, True)
         mesh.set_vertex_property('developability', vertex, developability)
+        # print("BEFORE: ", dictionary[vertex.idx()][0], "AFTER: ", developability)
         dictionary[vertex.idx()][0] = developability
+
 
 def localOptimizationConstraint(mesh, vertex, h=0):
     '''return the constraint T(δ) = (g(q + δn q ))2 + sum_j(g(q j ))2 of local optimization'''
@@ -116,6 +120,7 @@ def updateVertex(mesh, vertex):
     derivative_constraint = central_difference(mesh, localOptimizationConstraint, vertex)# dT(delta_0)
     if (derivative_constraint != 0):
         new_movement_scale = prev_movement_scale - constraint/derivative_constraint
+        print("New movement scale ", new_movement_scale)
         mesh.set_vertex_property('movement_scale', vertex, new_movement_scale) #update the movement scale
     else:
         mesh.set_vertex_property('movement_scale', vertex, 0) #update the movement scale
@@ -142,7 +147,7 @@ def updateNormals(mesh):
 
     return 0
 
-def central_difference(mesh, T, vertex, h=1e-3):
+def central_difference(mesh, T, vertex, h=1e-15):
     '''
     Use central difference to approximate dT
      f(x + h) - f(x - h)) / (2 * h)
@@ -180,10 +185,10 @@ def main():
     print("---------- Début main\n")
     maxIter = 1000
     nbIter = 0
-    epsilon = 0.01
+    epsilon = 0.0001
 
     ###    Read .off file
-    filename = "../Objects/mesh_00000.off"
+    filename = "../Objects/plane.off"
     mesh = om.read_trimesh(filename)
     # a, b = add_angles(mesh)
     # initial_object = mean_curvature(mesh, a, b)
@@ -215,6 +220,7 @@ def main():
         #Select the new vertex for next iteration
         vertex = getVertex(vertices_dic)
         max_developability = mesh.vertex_property('developability')[vertex.idx()]
+        print("MAX INDEX: ", vertex.idx())
         print("max_developability = ", max_developability)
         nbIter += 1
     print("---------- Fin algo\n")
