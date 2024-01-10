@@ -7,10 +7,6 @@ import matplotlib.pyplot as plt
 def cotan(x):
     return np.cos(x)/np.sin(x)
 
-def vector(mesh, vertexStart, vertexEnd):
-    return (mesh.point(vertexEnd)[0] - mesh.point(vertexStart)[0],
-            mesh.point(vertexEnd)[1] - mesh.point(vertexStart)[1],
-            mesh.point(vertexEnd)[2] - mesh.point(vertexStart)[2])
 
 def dist(mesh,x1, x2):
     x1 = mesh.point(x1)
@@ -97,3 +93,7 @@ def get_opposite_vertices(face_vertices_dict, face_id1, face_id2, vertex):
     opp_vertices.append(vertices_face1[0])
     opp_vertices.append(vertices_face2[0])
     return(opp_vertices)
+
+def gradientColor(value):
+
+    return (value, 0.5, 0.5)

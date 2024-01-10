@@ -24,7 +24,7 @@ def surfaceDiscrepancy(originalMesh, editedMesh):
     return discrepancy
 
 
-def developabilityDetectFunction(mesh):
+def developabilityDetectFunction(mesh, maxDevelopabilty=0):
     developability = 0
     listSum = []
     for vertex in mesh.vertices():
@@ -43,26 +43,20 @@ def developabilityDetectFunction(mesh):
             developability += sum
         else:
             listSum.append(False)
-    maxSum = max(listSum)
+    if maxDevelopabilty == 0:
+        maxSum = max(listSum)
+    else:
+        maxSum = maxDevelopabilty
     minSum = min(listSum)
     for vertex in mesh.vertices():
         if listSum[vertex.idx()]:
             normalizedSum = (listSum[vertex.idx()] - minSum) / (maxSum - minSum)
-            if normalizedSum == 1:
-                r, g, b = normalizedSum, normalizedSum, normalizedSum
-            elif normalizedSum < 0.3:
-                r, g, b = normalizedSum, 0, 0
-            elif normalizedSum < 0.6:
-                r, g, b = 0, normalizedSum, 0
-            else:
-                r, g, b = 0, 0, normalizedSum
+            r, g, b = gradientColor(normalizedSum)
             color = [r, g, b, 1.]
         else:
             color = [0., 0., 0., 1.]
         mesh.set_color(vertex, color)
-
-    # print("DEVELOPABILITY ", developability)
-    return developability
+    return maxSum
 
 def rhoInitalization(mesh):
     nbEdge = 0
