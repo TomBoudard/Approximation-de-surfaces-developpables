@@ -252,6 +252,8 @@ def main():
     vertices_dic = initDic(mesh)
     vertex = getVertex(vertices_dic)
     max_developability = abs(mesh.vertex_property('developability')[vertex.idx()])
+    print("START | Max index: ", vertex.idx(), "Max developability = ", max_developability)
+
     #while (the developability of the vertex with max developability is greater than ε) and (nbIter < maxIter);
     while ((max_developability > epsilon) and (nbIter < maxIter) ):
         #    Update worst_vertex's movement scale along its unit normal n according to Eq. 17;
