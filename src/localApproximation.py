@@ -295,20 +295,20 @@ def getVertexNewPosition(mesh, vertex):
 
 def main():
     print("---------- Début main\n")
-    maxIter = 10
+    maxIter = 45
     nbIter = 0
     epsilon = 0.01
     print("Nombre d'itérations max: ", maxIter)
     print("epsilon = ", epsilon)
 
     ###    Read .off file
-    filename = "../3D-Models/bunny.off"
+    filename = "../Objects/mesh_00040.off"
     print("lecture du fichier: ", filename)
     mesh = om.read_trimesh(filename)
-    a, b = add_angles(mesh)
-    initial_object = mean_curvature(mesh, a, b)
+    # a, b = add_angles(mesh)
+    # initial_object = mean_curvature(mesh, a, b)
     developabilityDetectFunction(mesh)
-    om.write_mesh("obj_initial.off", initial_object, vertex_color = True)
+    om.write_mesh("obj_initial.off", mesh, vertex_color = True)
     print("génération de la couleur des courbures de Gauss sur l'objet initial")
 
     ###    Compute the vertex developability detect function g(q) at each vertex on the given mesh patch and set the movement scale to each vertex to 0
@@ -363,10 +363,10 @@ def main():
     print("nbIter final = ", nbIter)
     # Update the positions of all the vertices by their movement scales
     updateVerticesPositions(mesh)
-    c, d = add_angles(mesh)
-    optimize_object = mean_curvature(mesh, c, d)
+    # c, d = add_angles(mesh)
+    # optimize_object = mean_curvature(mesh, c, d)
     # developabilityDetectFunction(mesh)
-    om.write_mesh("obj_optimized.off", optimize_object, vertex_color = True)
+    om.write_mesh("obj_optimized.off", mesh, vertex_color = True)
     # Update the normal vectors of all the vertices on O
     #Utile pour nous?
 

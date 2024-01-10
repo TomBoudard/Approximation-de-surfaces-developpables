@@ -14,10 +14,9 @@ def mean_curvature(mesh, face_vertices_dict, face_vertices_angles):
         if len(faces_ids) == 1:
             #Vertex is only in one face -> Boundary vertex what shoud we do?
             #TODO
-            # print("111111111111111111111111111111111")
             continue
         for i in range(len(faces_ids)-1):
-            # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>face n°", i)
+            #print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>face n°", i)
             face1 = faces_ids[i]
             face2 = faces_ids[i+1]
             opp_vertices = get_opposite_vertices(face_vertices_dict, face1, face2, vertex)
@@ -26,12 +25,8 @@ def mean_curvature(mesh, face_vertices_dict, face_vertices_angles):
             sum += cot_weight*(pj - mesh.point(vertex))
             face1_area = compute_area(mesh, face_vertices_dict, face_vertices_angles, face1)
             face2_area = compute_area(mesh, face_vertices_dict, face_vertices_angles, face2)
-            # print("face1_area =", face1_area)
-            # print("face2_area =", face2_area)
-
             Ai += face1_area + face2_area
         Ai *= 1/3
-        # print("Ai =  ", Ai)
         vertex_curvature = np.abs(np.linalg.norm(sum/(2*Ai))/2)
         if (vertex_curvature > max_curvature):
             max_curvature = vertex_curvature
