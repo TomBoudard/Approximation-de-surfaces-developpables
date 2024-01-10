@@ -20,8 +20,8 @@ def new_vector(mesh, vertexStart, vertexEnd, delta):
     old_position = mesh.point(vertexStart)
     position_vertexStart = old_position + delta * normal
     # position_vertexStart = getVertexNewPosition(mesh, vertexStart)
-    # position_vertexEnd =  getVertexNewPosition(mesh, vertexEnd)
-    position_vertexEnd = mesh.point(vertexEnd) #############               tenter changer ça
+    position_vertexEnd =  getVertexNewPosition(mesh, vertexEnd)
+    # position_vertexEnd = mesh.point(vertexEnd) #############               tenter changer ça
 
     return (position_vertexEnd[0] - position_vertexStart[0],
             position_vertexEnd[1] - position_vertexStart[1],
@@ -32,8 +32,8 @@ def new_vector2(mesh, vertexStart, vertexEnd, delta):
     old_position = mesh.point(vertexEnd)
     position_vertexEnd = old_position + delta * normal
     # position_vertexStart = getVertexNewPosition(mesh, vertexStart)
-    # position_vertexEnd =  getVertexNewPosition(mesh, vertexEnd)
-    position_vertexStart = mesh.point(vertexStart) #############               tenter changer ça
+    position_vertexStart =  getVertexNewPosition(mesh, vertexStart)
+    # position_vertexStart = mesh.point(vertexStart) #############               tenter changer ça
 
     return (position_vertexEnd[0] - position_vertexStart[0],
             position_vertexEnd[1] - position_vertexStart[1],
@@ -133,12 +133,12 @@ def initDic(mesh):
     Take a mesh and returns a dictionary keyed on the vertices' id, with the [g(· · · )]2 measure as values 
     """
     vertices = {vertex.idx() : [(mesh.vertex_property('developability')[vertex.idx()])**2, vertex] for vertex in mesh.vertices()}
-    print(vertices) #debug
+    # print(vertices) #debug
     return vertices
 
 def getVertex(mesh, dictionary):
     ''' return the vertex with the maximum [g(· · · )]2'''
-    print("Entrée dans la fonction getVertex")
+    # print("Entrée dans la fonction getVertex")
 
     max_value_vertex_id = None
     max_value = -1  # Initialize max_value as negative infinity
@@ -168,7 +168,7 @@ def updateDevelopability(mesh, moved_vertex, dictionary):
 
 def localOptimizationConstraint(mesh, moved_vertex, delta):
     '''return the constraint T(δ) = (g(q + δn q ))2 + sum_j(g(q j ))2 of local optimization'''
-    print("Entrée dans local optimization")
+    # print("Entrée dans local optimization")
     # normal = mesh.normal(vertex)
     # old_position = mesh.point(vertex)
     # new_position = mesh.point(vertex) + delta * normal
@@ -201,7 +201,7 @@ def updateVertex(mesh, vertex):
     print("Entrée dans updateVertex")
     # Compute the movement scale
     prev_movement_scale = mesh.vertex_property('movement_scale')[vertex.idx()] # delta_0
-    print("prev_movement_scale = ", prev_movement_scale)
+    # print("prev_movement_scale = ", prev_movement_scale)
     constraint = localOptimizationConstraint(mesh, vertex, prev_movement_scale) # T(delta_0)
     derivative_constraint = DerivativelocalOptimizationConstraint(mesh, vertex, prev_movement_scale)# dT(delta_0)
     if (derivative_constraint != 0):
@@ -277,14 +277,14 @@ def getVertexNewPosition(mesh, vertex):
 
 def main():
     print("---------- Début main\n")
-    maxIter = 21
+    maxIter = 200
     nbIter = 0
     epsilon = 0.01
     print("Nombre d'itérations max: ", maxIter)
     print("epsilon = ", epsilon)
 
     ###    Read .off file
-    filename = "../Objects/mesh_00030.off"
+    filename = "../Objects/mesh_00040.off"
     print("lecture du fichier: ", filename)
     mesh = om.read_trimesh(filename)
     # a, b = add_angles(mesh)
@@ -314,13 +314,13 @@ def main():
         print("Iteration numéro: ", nbIter)
         print("L'id du vertex à optimiser:", vertex.idx())
         print("Sa developabilité 1: (=max_dev) ", max_developability)
-        print("Sa position: ", mesh.point(vertex))
+        # print("Sa position: ", mesh.point(vertex))
         movement_scale = mesh.vertex_property('movement_scale')[vertex.idx()] # delta_0
-        print("son movement scale =", movement_scale)
+        # print("son movement scale =", movement_scale)
         ###    Update worst_vertex's movement scale along its unit normal n according to Eq. 17;
         res = updateVertex(mesh, vertex)
         max_developability = mesh.vertex_property('developability')[vertex.idx()]
-        print("Sa developabilité 1bis: (=max_dev) ", max_developability)
+        # print("Sa developabilité 1bis: (=max_dev) ", max_developability)
         if (res == 0):
             #this vertex need to be fixed so we remove it from the dic:
             vertices_dic.pop(vertex.idx())
@@ -330,14 +330,14 @@ def main():
             ###    Update the dictionary
             vertices_dic = updateDevelopability(mesh, vertex, vertices_dic)
             max_developability = mesh.vertex_property('developability')[vertex.idx()]
-            print("Sa developabilité 2: (=max_dev) ", max_developability)
-
+            # print("Sa developabilité 2: (=max_dev) ", max_developability)
         vertex = getVertex(mesh, vertices_dic)
-        max_developability = mesh.vertex_property('developability')[vertex.idx()]
-        print("Sa developabilité 3: (=max_dev) ", max_developability)
 
         max_developability = mesh.vertex_property('developability')[vertex.idx()]
-        print("Sa developabilité 4: (=max_dev) ", max_developability)
+        # print("Sa developabilité 3: (=max_dev) ", max_developability)
+
+        max_developability = mesh.vertex_property('developability')[vertex.idx()]
+        # print("Sa developabilité 4: (=max_dev) ", max_developability)
         nbIter += 1
     print("---------- Fin algo\n")
     print("max_developability initiale = ", initial_max_developability)
