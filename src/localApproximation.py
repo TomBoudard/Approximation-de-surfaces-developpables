@@ -86,7 +86,6 @@ def getNewDevelopability(mesh, vertex, delta): # Utilise les positions de bases!
         return 0
 
 
-
 def getNewDevelopabilityNeighboors(mesh, neighbour , moved_vertex, delta):
     # print("Entrée dans local getNewDevelopabilityNeighboors")
     if not mesh.is_boundary(neighbour): #else developability = 0
@@ -256,23 +255,6 @@ def DerivativelocalOptimizationConstraint(mesh, moved_vertex, delta):
     # mesh.set_point(vertex, old_position)
     return derivative_constraint
 
-
-def central_difference(mesh, T, vertex, delta, h=1e-5):
-    '''
-    Use central difference to approximat dT
-     f(x + h) - f(x - h)) / (2 * h)
-    '''
-    print("------------Entrée central difference")
-    return (T(mesh, vertex, delta + h) - T(mesh, vertex, delta - h)) / (2 * h)
-
-
-
-def updateNeighbour(mesh, vertex):
-    '''
-    Update the developabilty of the neighbourhood of the vertex we moved
-    '''
-    return 0
-
 def updateVerticesPositions(mesh):
     '''
     Update the positions of all the vertices by their movement scales
@@ -295,14 +277,14 @@ def getVertexNewPosition(mesh, vertex):
 
 def main():
     print("---------- Début main\n")
-    maxIter = 45
+    maxIter = 21
     nbIter = 0
     epsilon = 0.01
     print("Nombre d'itérations max: ", maxIter)
     print("epsilon = ", epsilon)
 
     ###    Read .off file
-    filename = "../Objects/mesh_00040.off"
+    filename = "../Objects/mesh_00030.off"
     print("lecture du fichier: ", filename)
     mesh = om.read_trimesh(filename)
     # a, b = add_angles(mesh)
@@ -316,8 +298,8 @@ def main():
 
     ###    Compute the unit normal n of each vertex
     mesh.update_vertex_normals()
-    print("Calcul des normals:\n")
-    print(mesh.vertex_normals()) #pour debug
+    # print("Calcul des normals:\n")
+    # print(mesh.vertex_normals()) #pour debug
 
     ###    Place all vertices in a dictionary H keyed on the vertices' id and with the [g(· · · )]2 measure as values and get the vertex with max values
     vertices_dic = initDic(mesh)
@@ -369,57 +351,6 @@ def main():
     om.write_mesh("obj_optimized.off", mesh, vertex_color = True)
     # Update the normal vectors of all the vertices on O
     #Utile pour nous?
-
-def main2():  # Dummy main with basic mesh to test the functions
-    print("---------- Début main\n")
-    mesh = om.TriMesh() #créer un mesh
-    #initialize a mesh with 4 vertices
-    vh0 = mesh.add_vertex([0, 1, 0])
-    vh1 = mesh.add_vertex([1, 0, 0])
-    vh2 = mesh.add_vertex([2, 1, 0])
-    vh3 = mesh.add_vertex([0,-1, 0])
-    # vh4 = mesh.add_vertex([2,-1, 0])
-
-    # add a couple of faces to the mesh
-    fh0 = mesh.add_face(vh0, vh1, vh2)
-    #fh1 = mesh.add_face(vh1, vh3, vh4)
-    fh2 = mesh.add_face(vh0, vh3, vh1)
-    #vh_list = [vh2, vh1, vh4]
-    #fh3 = mesh.add_face(vh_list)
-    # TODO implémenter algorithme
-    # a, b = add_angles(mesh)
-    # mesh.request_face_colors() # pour ajouter des couleurs aux faces?
-    # new_mesh = mean_curvature(mesh, a, b)
-    # mesh.get_color
-    maxIter = 3
-    nbIter = 0
-    epsilon = 0.001
-
-
-    initMesh(mesh)
-    ###    Compute the unit normal n of each vertex
-    mesh.update_vertex_normals()
-    #print(mesh.vertex_normals()) #pour debug
-
-    ###    Place all vertices in a dictionary H keyed on the vertices' id and with the [g(· · · )]2 measure as values and get the vertex with max values
-    vertices_dic = initDic(mesh)
-    vertex = getVertex(mesh, vertices_dic)
-    max_developability = mesh.vertex_property('developability')[vertex.idx()]
-    #while (the developability of the vertex with max developability is greater than ε) and (nbIter < maxIter);
-    while ((max_developability > epsilon) and (nbIter < maxIter) ):
-        vertex = getVertex(mesh, vertices_dic)
-        ###    Update worst_vertex's movement scale along its unit normal n according to Eq. 17;
-        updateVertex(mesh, vertex)
-        ###    Update the cost of q and its adjacent vertices to reflect the movement on q
-        #updateNeighbour(...)
-        ###    Update the dictionary
-        updateDevelopability(mesh, vertex, vertices_dic)
-        nbIter += 1
-    for vertex in mesh.vertices():
-        print(mesh.vertex_property('movement_scale')[vertex.idx()])
-    om.write_mesh("test_dummy_main.off", mesh) # write .off file
-    #mean_curvature(mesh)
-    print("---------- Fin main\n")
 
 if __name__ == "__main__":
     main() 
