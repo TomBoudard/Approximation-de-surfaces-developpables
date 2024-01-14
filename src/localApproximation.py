@@ -273,11 +273,11 @@ def main():
     print("---------- Début main\n")
     maxIter = 200
     nbIter = 0
-    epsilon = 0.1
+    epsilon = 0.05
     maxMovementScale = 0.05
 
     ###    Read .off file
-    filename = "../Objects/eight.off"
+    filename = "../Objects/mesh_00060.off"
     mesh = om.read_trimesh(filename)
     # a, b = add_angles(mesh)
     # initial_object = mean_curvature(mesh, a, b)
