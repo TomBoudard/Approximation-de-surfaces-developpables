@@ -4,7 +4,7 @@ import colorsys
 from matplotlib.colors import Normalize
 
 def main():
-    filename = "../output/test.off"
+    filename = "../../output/test.off"
 
     file = open(filename, "r")
 

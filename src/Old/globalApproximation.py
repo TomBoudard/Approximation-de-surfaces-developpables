@@ -80,7 +80,7 @@ def rhoInitalization(mesh):
 
 
 def main():
-    filename = "../Objects/sphere.off"
+    filename = "../../Objects/sphere.off"
     nbMaxIteration = 10
 
     originalMesh = om.read_trimesh(filename)

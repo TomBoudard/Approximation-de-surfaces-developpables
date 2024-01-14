@@ -41,7 +41,7 @@ def mean_curvature(mesh, face_vertices_dict, face_vertices_angles):
 ######################################################################
 def main2():   # More elaborate main reading and testing on .off files
     print("---------- Début main\n")
-    off_file = "../Objects/eight.off"
+    off_file = "../../Objects/eight.off"
     # En utilisnt les librairies:
     mesh = om.read_trimesh(off_file) #créer un mesh à partir du fichier .off
     a, b = add_angles(mesh)

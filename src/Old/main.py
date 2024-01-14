@@ -17,7 +17,7 @@ def read_off_file(file):
 
 def main():
     print("---------- Début main\n")
-    off_file = "../Objects/sphere.off"
+    off_file = "../../Objects/sphere.off"
     #à la main:
     #read_off_file(off_file)
     # En utilisnt les librairies:
