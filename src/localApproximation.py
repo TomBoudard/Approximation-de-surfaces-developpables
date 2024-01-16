@@ -2,6 +2,12 @@ import openmesh as om
 import numpy as np
 
 
+def vectorFixed(mesh, vertexStart, vertexEnd):
+    position_vertexStart = mesh.point(vertexStart)
+    position_vertexEnd = mesh.point(vertexEnd)
+    return (position_vertexEnd[0] - position_vertexStart[0],
+            position_vertexEnd[1] - position_vertexStart[1],
+            position_vertexEnd[2] - position_vertexStart[2])
 
 def vector(mesh, vertexStart, vertexEnd, h=0):
     position_vertexStart = getVertexNewPosition(mesh, vertexStart, h)
@@ -27,21 +33,26 @@ def vectorNewNeighbour(mesh, vertexStart, vertexEnd, h=0):
 
 def developabilityDetectFunction(mesh, minDevelopability=0, maxDevelopabilty=0):
     developability = 0
+    nbVertices = 0
     listSum = []
     for vertex in mesh.vertices():
+        nbVertices += 1
         if not mesh.is_boundary(vertex):
             sum = 2 * np.pi
             neighbours = [vh for vh in mesh.vv(vertex)]
             for i in range(len(neighbours)):
                 vh1 = neighbours[i]
                 vh2 = neighbours[(i + 1) % len(neighbours)]
-                vector1 = vector(mesh, vertex, vh1)
-                vector2 = vector(mesh, vertex, vh2)
-                angle = np.arccos(
-                    np.dot(vector1, vector2) / (np.sqrt(np.dot(vector1, vector1)) * np.sqrt(np.dot(vector2, vector2))))
+                vector1 = vectorFixed(mesh, vertex, vh1)
+                vector2 = vectorFixed(mesh, vertex, vh2)
+                if ((np.linalg.norm(vector1)) == 0 or (np.linalg.norm(vector2) == 0)):
+                    raise ZeroDivisionError("Cannot divide by zero")
+                vector1 /= np.linalg.norm(vector1)
+                vector2 /= np.linalg.norm(vector2)
+                angle = np.arccos(np.dot(vector1, vector2))
                 sum -= angle
             listSum.append(abs(sum))
-            developability += sum
+            developability += abs(sum)
         else:
             listSum.append(False)
     if maxDevelopabilty == 0:
@@ -59,6 +70,8 @@ def developabilityDetectFunction(mesh, minDevelopability=0, maxDevelopabilty=0):
         else:
             color = [0., 0., 0., 1.]
         mesh.set_color(vertex, color)
+    developability = developability/nbVertices
+    print("DEVELOPABILITE MOYENNE: ",developability)
     return minSum, maxSum
 
 def getDevelopability(mesh, vertex, vectorFunction, h=0):
@@ -241,13 +254,13 @@ def getVertexNewPosition(mesh, vertex, h=0):
 
 def main():
     print("---------- Début main\n")
-    maxIter = 100
+    maxIter = 500
     nbIter = 0
-    epsilon = 0.02
-    maxMovementScale = 20
+    epsilon = 0.01
+    maxMovementScale = 0.008
 
     ###    Read .off file
-    filename = "../Objects/mesh_00000.off"
+    filename = "../Objects/EmpireDress.off"
     mesh = om.read_trimesh(filename)
     initialMinDevelopability, initialMaxDevelopability = developabilityDetectFunction(mesh)
     om.write_mesh("obj_initial.off", mesh, vertex_color = True)
@@ -293,10 +306,10 @@ def main():
 
     a, b = developabilityDetectFunction(mesh, initialMinDevelopability, initialMaxDevelopability)
     om.write_mesh("obj_optimized.off", mesh, vertex_color = True)
-
-    print("nbIter = ", nbIter)
     print(initialMinDevelopability, initialMaxDevelopability)
     print(a, b)
+
+    print("nbIter = ", nbIter)
 
 if __name__ == "__main__":
     main()
