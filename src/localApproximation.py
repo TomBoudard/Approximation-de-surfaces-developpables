@@ -1,7 +1,5 @@
 import openmesh as om
 import numpy as np
-import heapq
-from gaussian_map import mean_curvature
 
 def developabilityDetectFunction(mesh, minDevelopability=0, maxDevelopabilty=0):
     '''
@@ -305,13 +303,13 @@ def main():
     # Parameters
     maxIter = 500 #40
     nbIter = 0
-    epsilon = 0.01
-    maxMovementScale = 0.008
+    epsilon = 0.001
+    maxMovementScale = 0.5
     print("Nombre d'itérations max: ", maxIter)
     print("Epsilon = ", epsilon)
 
     ###    Read .off file
-    filename = "../Objects/EmpireDress.off"
+    filename = "../Objects/plane2.off"
     print("lecture du fichier: ", filename)
     mesh = om.read_trimesh(filename)
 
