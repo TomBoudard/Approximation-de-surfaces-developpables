@@ -65,7 +65,7 @@ def developabilityDetectFunction(mesh, minDevelopability=0, maxDevelopabilty=0):
     for vertex in mesh.vertices():
         if listSum[vertex.idx()]:
             normalizedSum = (listSum[vertex.idx()] - minSum) / (maxSum - minSum)
-            r, g, b = (normalizedSum, normalizedSum, normalizedSum)
+            r, g, b = (normalizedSum, 0, 1-normalizedSum)
             color = [r, g, b, 1.]
         else:
             color = [0., 0., 0., 1.]
@@ -254,10 +254,10 @@ def getVertexNewPosition(mesh, vertex, h=0):
 
 def main():
     print("---------- Début main\n")
-    maxIter = 500
+    maxIter = 1000
     nbIter = 0
-    epsilon = 0.01
-    maxMovementScale = 0.008
+    epsilon = 0.005
+    maxMovementScale = 0.1
 
     ###    Read .off file
     filename = "../Objects/EmpireDress.off"
